@@ -1,0 +1,88 @@
+version: '3.4'
+
+services:
+  # full config that can run everything in the service
+  runner:
+    image: driver_location:dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+      - "3000:3000"
+    depends_on:
+      - nsqd
+      - nsqlookupd
+      - redis
+    environment:
+      REDIS_URL: redis://redis.local:6379/2
+      REDIS_TEST_URL: redis://redis.local:6379/3
+      NSQ_TOPIC: location
+      NSQ_LOOKUPD: nsqlookupd.local:4161
+
+    networks:
+      default:
+        aliases:
+          - driver-location.local
+
+  # same as runner, but source is mounted for instant reload without rebuild
+  dev:
+    image: driver_location:dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+      - "3000:3000"
+    depends_on:
+      - nsqd
+      - nsqlookupd
+      - redis
+    volumes:
+      - .:/home/app/services/driver_location
+      - bundle:/home/app/services/driver_location/vendor
+    environment:
+      REDIS_URL: redis://redis.local:6379/2
+      REDIS_TEST_URL: redis://redis.local:6379/3
+      NSQ_TOPIC: location
+      NSQ_LOOKUPD: nsqlookupd.local:4161
+    networks:
+      default:
+        aliases:
+          - driver-location.local
+
+  redis:
+    image: redis:5.0.0-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      default:
+        aliases:
+          - redis.local
+
+  nsqlookupd:
+    image: nsqio/nsq:v1.1.0
+    command: /nsqlookupd
+    ports:
+      - "4160:4160"
+      - "4161:4161"
+    networks:
+      default:
+        aliases:
+          - nsqlookupd.local
+
+  nsqd:
+    image: nsqio/nsq:v1.1.0
+    command: /nsqd --lookupd-tcp-address=nsqlookupd:4160  -broadcast-address=nsqd.local
+    depends_on:
+      - nsqlookupd
+    ports:
+      - "4150:4150"
+      - "4151:4151"
+    networks:
+      default:
+        aliases:
+          - nsqd.local
+
+volumes:
+  bundle:

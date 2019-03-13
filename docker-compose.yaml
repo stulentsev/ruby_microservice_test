@@ -1,0 +1,96 @@
+version: '3.4'
+
+services:
+  driver_location_web:
+    image: driver_location:web
+    build:
+      context: ./driver-location
+      dockerfile: Dockerfile
+      target: web
+    ports:
+      - "3100:3000"
+    depends_on:
+      - redis
+    environment:
+      REDIS_URL: redis://redis.local:6379/2
+    networks:
+      default:
+        aliases:
+          - driver-location.local
+
+  driver_location_consumer:
+    image: driver_location:consumer
+    build:
+      context: ./driver-location
+      dockerfile: Dockerfile
+      target: consumer
+    depends_on:
+      - nsqlookupd
+      - nsqd
+      - redis
+    environment:
+      NSQ_TOPIC: locations
+      REDIS_URL: redis://redis.local:6379/2
+      NSQ_LOOKUPD: nsqlookupd.local:4161
+
+  zombie_driver:
+    image: zombie_driver:release
+    build:
+      context: ./zombie-driver
+      dockerfile: Dockerfile
+      target: release
+    ports:
+      - "3200:3000"
+    environment:
+      LOCATION_SERVICE_URL: http://driver-location.local:3000
+    networks:
+      default:
+        aliases:
+          - zombie-driver.local
+
+  gateway:
+    image: gateway:release
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+      target: release
+    ports:
+      - "3000:3000"
+    depends_on:
+      - nsqlookupd
+      - nsqd
+    environment:
+      NSQ_LOOKUPD: nsqlookupd.local:4161
+
+  redis:
+    image: redis:5.0.0-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      default:
+        aliases:
+          - redis.local
+
+  nsqlookupd:
+    image: nsqio/nsq:v1.1.0
+    command: /nsqlookupd
+    ports:
+      - "4160:4160"
+      - "4161:4161"
+    networks:
+      default:
+        aliases:
+          - nsqlookupd.local
+
+  nsqd:
+    image: nsqio/nsq:v1.1.0
+    command: /nsqd --lookupd-tcp-address=nsqlookupd:4160  -broadcast-address=nsqd.local
+    depends_on:
+      - nsqlookupd
+    ports:
+      - "4150:4150"
+      - "4151:4151"
+    networks:
+      default:
+        aliases:
+          - nsqd.local

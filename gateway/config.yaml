@@ -1,0 +1,16 @@
+urls:
+  -
+    path: "/drivers/:id/locations"
+    method: "PATCH"
+    nsq:
+      topic: "locations"
+  -
+    path: "/drivers/:id"
+    method: "GET"
+    http:
+      host: "zombie-driver.local:3000"
+  -
+    path: "/drivers/:id/locations"
+    method: "GET"
+    http:
+      host: "driver-location.local:3000"

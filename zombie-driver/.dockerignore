@@ -1,0 +1,17 @@
+.*history
+.bundle
+.dockerignore
+.gemrc
+.git
+.gitignore
+.rubocop*
+.ruby-version
+.rspec_status
+*.md
+*.sh
+docker-compose.*
+Dockerfile*
+log/*
+Makefile
+tmp/*
+vendor/bundle

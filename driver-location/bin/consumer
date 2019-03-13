@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'bundler/setup'
+require_relative '../system/container'
+Application.finalize!
+
+Application['listener.cli'].class.start

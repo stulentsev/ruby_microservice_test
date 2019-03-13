@@ -1,0 +1,68 @@
+version: '3.4'
+
+services:
+  runner:
+    image: gateway:runner
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    ports:
+      - "3000:3000"
+    environment:
+      NSQ_LOOKUPD: nsqlookupd.local:4161
+    depends_on:
+      - nsqd
+      - nsqlookupd
+    networks:
+      default:
+        aliases:
+          - gateway.local
+
+  dev:
+    image: gateway:runner
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    ports:
+      - "3100:3000"
+    environment:
+      NSQ_LOOKUPD: nsqlookupd.local:4161
+    depends_on:
+      - nsqd
+      - nsqlookupd
+    volumes:
+      - .:/home/app/services/gateway
+      - bundle:/home/app/services/gateway/vendor
+    networks:
+      default:
+        aliases:
+          - gateway.local
+
+  nsqlookupd:
+    image: nsqio/nsq:v1.1.0
+    command: /nsqlookupd
+    ports:
+      - "4160:4160"
+      - "4161:4161"
+    networks:
+      default:
+        aliases:
+          - nsqlookupd.local
+
+  nsqd:
+    image: nsqio/nsq:v1.1.0
+    command: /nsqd --lookupd-tcp-address=nsqlookupd:4160  -broadcast-address=nsqd.local
+    depends_on:
+      - nsqlookupd
+    ports:
+      - "4150:4150"
+      - "4151:4151"
+    networks:
+      default:
+        aliases:
+          - nsqd.local
+
+volumes:
+  bundle:

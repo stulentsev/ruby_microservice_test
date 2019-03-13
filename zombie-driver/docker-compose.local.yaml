@@ -1,0 +1,35 @@
+version: '3.4'
+
+services:
+  runner:
+    image: zombie_driver:runner
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    ports:
+      - "3000:3100"
+    networks:
+      default:
+        aliases:
+          - zombie-driver.local
+
+  dev:
+    image: zombie_driver:web
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    ports:
+      - "3000:3100"
+    volumes:
+      - .:/home/app/services/zombie_driver
+      - bundle:/home/app/services/zombie_driver/vendor
+    networks:
+      default:
+        aliases:
+          - zombie_driver.local
+
+volumes:
+  bundle:
+

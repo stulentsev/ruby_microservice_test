@@ -1,0 +1,41 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+ruby '2.6.1'
+
+gem 'dry-auto_inject'
+gem 'dry-container'
+gem 'dry-struct'
+gem 'dry-system'
+gem 'dry-transaction'
+gem 'dry-validation'
+
+gem 'puma'
+gem 'sinatra'
+
+gem 'multi_json'
+gem 'oj'
+gem 'rake'
+
+# console
+gem 'pry'
+
+# distance calculation
+gem 'geokit'
+
+# http lib
+gem 'typhoeus'
+
+group :test do
+  gem 'rack-test'
+  gem 'rspec'
+end
+
+group :development do
+  gem 'awesome_print', require: false
+end
+
+group :development, :test do
+  gem 'pry-byebug'
+end
